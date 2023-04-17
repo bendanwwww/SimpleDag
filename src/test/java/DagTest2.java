@@ -1,12 +1,7 @@
-import java.util.HashSet;
-import java.util.Random;
-
 import org.junit.Test;
 
 import com.dag.business.ServingContext;
 import com.dag.driver.DagDriver;
-import com.dag.driver.DagDriverConfig;
-import com.dag.driver.NodeOperatorListener;
 import com.dag.driver.NodeWrapper;
 
 /**
@@ -15,19 +10,14 @@ import com.dag.driver.NodeWrapper;
  * @author lsy
  * @date 2023/04/16
  */
-public class DagTest {
+public class DagTest2 {
 
     @Test
     public void test() {
 
         /** 初始化全局上下文 和 dag 引擎 */
         ServingContext servingContext = new ServingContext();
-        DagDriverConfig driverConfig = new DagDriverConfig()
-                .nodeTimeout(200L)
-                .iRateLimit((w) -> true)
-                .iBreak((w) -> true)
-                .iDownGrade((w) -> true);
-        DagDriver<ServingContext> dagDriver = new DagDriver<>(servingContext, driverConfig);
+        DagDriver<ServingContext> dagDriver = new DagDriver<>(servingContext);
         /** 定义节点 */
         NodeWrapper<ServingContext> node1 = new NodeWrapper<ServingContext>()
                 .driver(dagDriver)
@@ -35,7 +25,8 @@ public class DagTest {
                 .operator((c) -> {
                     System.out.println(c.getClass().getName());
                     return null;
-                });
+                })
+                .nextNode("2", "3", "4");
         NodeWrapper<ServingContext> node2 = new NodeWrapper<ServingContext>()
                 .driver(dagDriver)
                 .name("2")
@@ -43,10 +34,7 @@ public class DagTest {
                     System.out.println(c.getClass().getName());
                     return null;
                 })
-                .frontNode(node1.getNodeName())
-                .nextNode("3", "4")
-                .nodeTimeout(500L)
-                .nodeChoose((w) -> (boolean) w.getOperatorResult().getResult() ? new HashSet<>() {{add("3");}} : new HashSet<>() {{add("4");}});
+                .nextNode("5", false);
         NodeWrapper<ServingContext> node3 = new NodeWrapper<ServingContext>()
                 .driver(dagDriver)
                 .name("3")
@@ -54,8 +42,7 @@ public class DagTest {
                     System.out.println(c.getClass().getName());
                     return null;
                 })
-                .iBreak((w) -> true)
-                .nodeCondition((w) -> new Random().nextInt(10) > 5);
+                .nextNode("5", false);
         NodeWrapper<ServingContext> node4 = new NodeWrapper<ServingContext>()
                 .driver(dagDriver)
                 .name("4")
@@ -63,9 +50,22 @@ public class DagTest {
                     System.out.println(c.getClass().getName());
                     return null;
                 })
-                .iRateLimit((w) -> true)
-                .iDownGrade((w) -> true)
-                .operatorListener((w) -> System.out.println("node 4 run"), NodeOperatorListener.OperatorListenerEvent.START);
+                .nextNode("5", false);
+        NodeWrapper<ServingContext> node5 = new NodeWrapper<ServingContext>()
+                .driver(dagDriver)
+                .name("5")
+                .operator((c) -> {
+                    System.out.println(c.getClass().getName());
+                    return null;
+                })
+                .nextNode("6");
+        NodeWrapper<ServingContext> node6 = new NodeWrapper<ServingContext>()
+                .driver(dagDriver)
+                .name("6")
+                .operator((c) -> {
+                    System.out.println(c.getClass().getName());
+                    return null;
+                });
         /** 构图 */
         dagDriver.buildDag();
         /** 执行 */

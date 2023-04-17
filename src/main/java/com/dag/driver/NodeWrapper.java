@@ -28,6 +28,14 @@ public class NodeWrapper<P> {
     private IChoose nodeChoose;
     /** 节点执行监听器 */
     private NodeOperatorListener operatorListener;
+    /** 节点超时 */
+    private long nodeTimeout;
+    /** 节点限流策略 */
+    private IRateLimit iRateLimit;
+    /** 节点降级策略 */
+    private IDownGrade iDownGrade;
+    /** 节点熔断策略 */
+    private IBreak iBreak;
 
     public NodeWrapper driver(DagDriver<P> dagDriver) {
         this.dagDriver = dagDriver;
@@ -45,8 +53,18 @@ public class NodeWrapper<P> {
         return this;
     }
 
+    public NodeWrapper nextNode(String nodeWrapper, boolean isMust) {
+        nextNodes.add(nodeWrapper);
+        return this;
+    }
+
     public NodeWrapper nextNode(String... nodeWrappers) {
         nextNodes.addAll(Arrays.stream(nodeWrappers).collect(Collectors.toSet()));
+        return this;
+    }
+
+    public NodeWrapper frontNode(String nodeWrappers, boolean isMust) {
+        frontNodes.add(nodeWrappers);
         return this;
     }
 
@@ -65,12 +83,40 @@ public class NodeWrapper<P> {
         return this;
     }
 
-    public NodeWrapper operatorListener(NodeOperatorListener operatorListener) {
+    public NodeWrapper operatorListener(NodeOperatorListener operatorListener, NodeOperatorListener.OperatorListenerEvent listenerEvent) {
         this.operatorListener = operatorListener;
+        return this;
+    }
+
+    public NodeWrapper nodeTimeout(long nodeTimeout) {
+        this.nodeTimeout = nodeTimeout;
+        return this;
+    }
+
+    public NodeWrapper iRateLimit(IRateLimit iRateLimit) {
+        this.iRateLimit = iRateLimit;
+        return this;
+    }
+
+    public NodeWrapper iDownGrade(IDownGrade iDownGrade) {
+        this.iDownGrade = iDownGrade;
+        return this;
+    }
+
+    public NodeWrapper iBreak(IBreak iBreak) {
+        this.iBreak = iBreak;
         return this;
     }
 
     public String getNodeName() {
         return nodeName;
+    }
+
+    public NodeOperatorResult getOperatorResult() {
+        return dagDriver.getOperatorResult(this.nodeName);
+    }
+
+    public P getContext() {
+        return dagDriver.getContext();
     }
 }

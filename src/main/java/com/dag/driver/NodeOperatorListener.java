@@ -14,4 +14,14 @@ package com.dag.driver;
 public interface NodeOperatorListener {
     /** 执行函数 */
     void onEvent(NodeWrapper wrapper);
+
+    public enum OperatorListenerEvent {
+        /** 开始执行 */
+        START,
+        /** 执行成功 */
+        SUCCESS,
+        /** 执行失败 */
+        ERROR,
+        ;
+    }
 }

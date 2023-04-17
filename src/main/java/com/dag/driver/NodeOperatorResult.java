@@ -7,13 +7,20 @@ package com.dag.driver;
  * @date 2023/04/16
  */
 public class NodeOperatorResult<R> {
-
     /** 节点执行结果 */
     private R result;
     /** 执行结果状态 */
     private ResultState resultState;
     /** 异常信息 */
     private Throwable ex;
+
+    public R getResult() {
+        return result;
+    }
+
+    public ResultState getResultState() {
+        return resultState;
+    }
 
     public enum ResultState {
         /** 成功 */
