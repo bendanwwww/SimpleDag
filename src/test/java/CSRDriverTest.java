@@ -1,15 +1,7 @@
-import java.util.HashSet;
-import java.util.Random;
-
 import org.junit.Test;
 
-import com.dag.business.ServingContext;
 import com.dag.driver.driverMap.CSRDriverMap;
 import com.dag.driver.driverMap.SimpleNode;
-import com.dag.driver.node.DagDriver;
-import com.dag.driver.node.DagDriverConfig;
-import com.dag.driver.node.NodeOperatorListener;
-import com.dag.driver.node.NodeWrapper;
 
 /**
  * CSR driver test
