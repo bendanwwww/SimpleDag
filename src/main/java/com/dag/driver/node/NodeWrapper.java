@@ -1,4 +1,4 @@
-package com.dag.driver;
+package com.dag.driver.node;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -20,7 +20,7 @@ public class NodeWrapper<P> {
     private NodeOperator<P, ?> nodeOperator;
     /** 执行节点 后继节点 */
     private Set<String> nextNodes = new HashSet<>();
-    /** 执行节点 前继节点 */
+    /** 执行节点 前置节点 */
     private Set<String> frontNodes = new HashSet<>();
     /** 节点执行条件 */
     private ICondition nodeCondition;

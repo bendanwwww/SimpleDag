@@ -1,8 +1,8 @@
 import org.junit.Test;
 
 import com.dag.business.ServingContext;
-import com.dag.driver.DagDriver;
-import com.dag.driver.NodeWrapper;
+import com.dag.driver.node.DagDriver;
+import com.dag.driver.node.NodeWrapper;
 
 /**
  * dag test
