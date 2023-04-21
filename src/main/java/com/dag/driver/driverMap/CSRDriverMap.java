@@ -28,7 +28,7 @@ public class CSRDriverMap extends DriverMap {
     public void build() {
         // 初始化数组
         int edgeNumber = nodeList.stream().mapToInt(n -> n.getNextNodes().size()).sum();
-        edgeArray = new int[edgeNumber][2];
+        edgeArray = new int[edgeNumber][3];
         rowStartArray = new int[nodeList.size()];
         colAndValueArray = new int[edgeNumber * 2][2];
         // 构图
@@ -42,6 +42,10 @@ public class CSRDriverMap extends DriverMap {
                 // 记录出边
                 edgeArray[edgeArrayIndex][0] = node.getNodeIndex();
                 edgeArray[edgeArrayIndex][1] = nextNode.getNodeIndex();
+                // 记录弱依赖
+                if (node.isMust(nextNode)) {
+                    edgeArray[edgeArrayIndex][2] = 1;
+                }
                 // 临时记录一下下标
                 edgeIndexMap.put(edgeArray[edgeArrayIndex][0] + "," + edgeArray[edgeArrayIndex][1], edgeArrayIndex);
                 // 临时记录一下入边
@@ -49,7 +53,7 @@ public class CSRDriverMap extends DriverMap {
                 if (Objects.isNull(intoEdges)) {
                     intoEdges = new ArrayList<>();
                 }
-                intoEdges.add(edgeArray[edgeArrayIndex][0]);
+                intoEdges.add(edgeArrayIndex);
                 intoEdgeMap.put(edgeArray[edgeArrayIndex][1], intoEdges);
                 edgeArrayIndex++;
             }
@@ -63,16 +67,17 @@ public class CSRDriverMap extends DriverMap {
             rowStartArray[nodeIndex] = colAndValueArrayIndex;
             // 出边
             for (SimpleNode nextNode : nextNodes) {
-                colAndValueArray[colAndValueArrayIndex][0] = edgeIndexMap.get(nodeIndex + "," + nextNode.getNodeIndex());
-                colAndValueArray[colAndValueArrayIndex][1] = 1;
+                int edgeIndex = edgeIndexMap.get(nodeIndex + "," + nextNode.getNodeIndex());
+                colAndValueArray[colAndValueArrayIndex][0] = edgeIndex;
+                colAndValueArray[colAndValueArrayIndex][1] = edgeArray[edgeIndex][2] == 0 ? 1 : 2;
                 colAndValueArrayIndex++;
             }
             // 入边
-            List<Integer> intoEdges = intoEdgeMap.get(nodeIndex);
-            if (Objects.nonNull(intoEdges)) {
-                for (int lastNodeIndex : intoEdges) {
-                    colAndValueArray[colAndValueArrayIndex][0] = edgeIndexMap.get(lastNodeIndex + "," + nodeIndex);
-                    colAndValueArray[colAndValueArrayIndex][1] = -1;
+            List<Integer> intoEdgeIndexList = intoEdgeMap.get(nodeIndex);
+            if (Objects.nonNull(intoEdgeIndexList)) {
+                for (int intoEdgeIndex : intoEdgeIndexList) {
+                    colAndValueArray[colAndValueArrayIndex][0] = intoEdgeIndex;
+                    colAndValueArray[colAndValueArrayIndex][1] = edgeArray[intoEdgeIndex][2] == 0 ? -1 : -2;
                     colAndValueArrayIndex++;
                 }
             }

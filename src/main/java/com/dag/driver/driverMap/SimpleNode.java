@@ -17,10 +17,13 @@ public class SimpleNode {
     private String val;
     /** 后继节点列表 */
     private List<SimpleNode> nextNodes;
+    /** 后继弱依赖节点列表 */
+    private List<SimpleNode> nextNotMustNodes;
 
     public SimpleNode(String val) {
         this.val = val;
         this.nextNodes = new ArrayList<>();
+        this.nextNotMustNodes = new ArrayList<>();
     }
 
     public String getVal() {
@@ -29,6 +32,14 @@ public class SimpleNode {
 
     public List<SimpleNode> getNextNodes() {
         return nextNodes;
+    }
+
+    public List<SimpleNode> getNextNotMustNodes() {
+        return nextNotMustNodes;
+    }
+
+    public boolean isMust(SimpleNode node) {
+        return nextNotMustNodes.contains(node);
     }
 
     public int getNodeIndex() {
@@ -42,10 +53,13 @@ public class SimpleNode {
     public void next(SimpleNode node) {
         nextNodes.add(node);
     }
-//
-//    public void next(SimpleNode node, boolean isMust) {
-//        nextNodes.add(new SimpleEdge(this, node, isMust));
-//    }
+
+    public void next(SimpleNode node, boolean isMust) {
+        nextNodes.add(node);
+        if (!isMust) {
+            nextNotMustNodes.add(node);
+        }
+    }
 
     @Override
     public String toString() {
