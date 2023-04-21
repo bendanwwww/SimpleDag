@@ -1,12 +1,13 @@
 package com.dag.driver.driverMap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 /**
  * csr 算法构图
@@ -16,6 +17,8 @@ import java.util.stream.Collectors;
  */
 public class CSRDriverMap extends DriverMap {
 
+    /** 边组 edgeArray[i][j] 表示 i -> j 的边 */
+    private int[][] edgeArray;
     /** 行下标起始位置 rowStartArray[i] 表示 关联矩阵第 i 行 在 colAndValueArray 的起始位置 */
     private int[] rowStartArray;
     /** 列下标和具体数值数组 colAndValueArray[i][0] 表示 关联矩阵第 i 列, colAndValueArray[i][1] 表示 关联矩阵对应位置具体的值 */
@@ -24,33 +27,57 @@ public class CSRDriverMap extends DriverMap {
     @Override
     public void build() {
         // 初始化数组
+        int edgeNumber = nodeList.stream().mapToInt(n -> n.getNextNodes().size()).sum();
+        edgeArray = new int[edgeNumber][2];
         rowStartArray = new int[nodeList.size()];
-        colAndValueArray = new int[edgeList.size() * 2][2];
-        // 构图 遍历节点
+        colAndValueArray = new int[edgeNumber * 2][2];
+        // 构图
+        // 记录边
+        Map<String, Integer> edgeIndexMap = new HashMap<>();
+        Map<Integer, List<Integer>> intoEdgeMap = new HashMap<>();
+        int edgeArrayIndex = 0;
+        for (SimpleNode node : nodeList) {
+            List<SimpleNode> nextNodes = node.getNextNodes();
+            for (SimpleNode nextNode : nextNodes) {
+                // 记录出边
+                edgeArray[edgeArrayIndex][0] = node.getNodeIndex();
+                edgeArray[edgeArrayIndex][1] = nextNode.getNodeIndex();
+                // 临时记录一下下标
+                edgeIndexMap.put(edgeArray[edgeArrayIndex][0] + "," + edgeArray[edgeArrayIndex][1], edgeArrayIndex);
+                // 临时记录一下入边
+                List<Integer> intoEdges = intoEdgeMap.get(edgeArray[edgeArrayIndex][1]);
+                if (Objects.isNull(intoEdges)) {
+                    intoEdges = new ArrayList<>();
+                }
+                intoEdges.add(edgeArray[edgeArrayIndex][0]);
+                intoEdgeMap.put(edgeArray[edgeArrayIndex][1], intoEdges);
+                edgeArrayIndex++;
+            }
+        }
+        // 记录节点
         int colAndValueArrayIndex = 0;
-        Map<SimpleNode, List<SimpleEdge>> nodeIntoEdgeMap = edgeList.stream().collect(Collectors.groupingBy(edge -> edge.getEndNode()));
-        for (int i = 0 ; i < nodeList.size() ; i++) {
-            SimpleNode node = nodeList.get(i);
-            List<SimpleEdge> nextNodes = node.getNextNodes();
+        for (SimpleNode node : nodeList) {
+            int nodeIndex = node.getNodeIndex();
+            List<SimpleNode> nextNodes = node.getNextNodes();
             // 记录节点在 colAndValueArray 中的起始位置
-            rowStartArray[i] = colAndValueArrayIndex;
+            rowStartArray[nodeIndex] = colAndValueArrayIndex;
             // 出边
-            for (SimpleEdge edge : nextNodes) {
-                colAndValueArray[colAndValueArrayIndex][0] = edgeList.indexOf(edge);
-                colAndValueArray[colAndValueArrayIndex][1] = edge.isMust() ? 1 : 2;
+            for (SimpleNode nextNode : nextNodes) {
+                colAndValueArray[colAndValueArrayIndex][0] = edgeIndexMap.get(nodeIndex + "," + nextNode.getNodeIndex());
+                colAndValueArray[colAndValueArrayIndex][1] = 1;
                 colAndValueArrayIndex++;
             }
             // 入边
-            if (nodeIntoEdgeMap.containsKey(node)) {
-                List<SimpleEdge> nodeIntoEdge = nodeIntoEdgeMap.get(node);
-                for (SimpleEdge edge : nodeIntoEdge) {
-                    colAndValueArray[colAndValueArrayIndex][0] = edgeList.indexOf(edge);
-                    colAndValueArray[colAndValueArrayIndex][1] = edge.isMust() ? -1 : -2;
+            List<Integer> intoEdges = intoEdgeMap.get(nodeIndex);
+            if (Objects.nonNull(intoEdges)) {
+                for (int lastNodeIndex : intoEdges) {
+                    colAndValueArray[colAndValueArrayIndex][0] = edgeIndexMap.get(lastNodeIndex + "," + nodeIndex);
+                    colAndValueArray[colAndValueArrayIndex][1] = -1;
                     colAndValueArrayIndex++;
                 }
             }
             // 一个节点没有任何一条边, 抛出异常
-            if (colAndValueArrayIndex == rowStartArray[i]) {
+            if (colAndValueArrayIndex == rowStartArray[nodeIndex]) {
                 throw new RuntimeException("node 不可达, node val: " + node.getVal());
             }
         }
@@ -82,8 +109,8 @@ public class CSRDriverMap extends DriverMap {
                 for (int i = rowStartArray[nodeIndex];
                      i < (nodeIndex < rowStartArray.length - 1 ? rowStartArray[nodeIndex + 1] : colAndValueArray.length) ; i++) {
                     if (colAndValueArray[i][1] == 1) {
-                        SimpleEdge edge = edgeList.get(colAndValueArray[i][0]);
-                        nextNodeList.add(edge.getEndNode());
+                        int[] edge = edgeArray[colAndValueArray[i][0]];
+                        nextNodeList.add(nodeList.get(edge[1]));
                     }
                 }
             }

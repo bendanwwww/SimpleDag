@@ -16,7 +16,7 @@ public class SimpleNode {
     /** 节点值 */
     private String val;
     /** 后继节点列表 */
-    private List<SimpleEdge> nextNodes;
+    private List<SimpleNode> nextNodes;
 
     public SimpleNode(String val) {
         this.val = val;
@@ -27,7 +27,7 @@ public class SimpleNode {
         return val;
     }
 
-    public List<SimpleEdge> getNextNodes() {
+    public List<SimpleNode> getNextNodes() {
         return nextNodes;
     }
 
@@ -40,12 +40,12 @@ public class SimpleNode {
     }
 
     public void next(SimpleNode node) {
-        nextNodes.add(new SimpleEdge(this, node, true));
+        nextNodes.add(node);
     }
-
-    public void next(SimpleNode node, boolean isMust) {
-        nextNodes.add(new SimpleEdge(this, node, isMust));
-    }
+//
+//    public void next(SimpleNode node, boolean isMust) {
+//        nextNodes.add(new SimpleEdge(this, node, isMust));
+//    }
 
     @Override
     public String toString() {

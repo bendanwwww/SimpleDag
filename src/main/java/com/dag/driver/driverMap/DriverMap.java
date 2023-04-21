@@ -16,13 +16,10 @@ public abstract class DriverMap {
     protected List<SimpleNode> headList = new ArrayList<>();
     /** 节点列表 */
     protected List<SimpleNode> nodeList = new ArrayList<>();
-    /** 边列表 */
-    protected List<SimpleEdge> edgeList = new ArrayList<>();
 
     public void head(SimpleNode... node) {
         Arrays.stream(node).forEach(n -> {
             headList.add(n);
-            edgeList.addAll(n.getNextNodes());
         });
     }
 
@@ -30,7 +27,6 @@ public abstract class DriverMap {
         Arrays.stream(node).forEach(n -> {
             n.setNodeIndex(nodeList.size());
             nodeList.add(n);
-            edgeList.addAll(n.getNextNodes());
         });
     }
 
