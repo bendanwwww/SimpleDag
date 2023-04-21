@@ -30,7 +30,7 @@ public abstract class DriverMap {
         });
     }
 
-    abstract void build();
+    public void build() {}
 
-    abstract void run();
+    public void run() {}
 }
